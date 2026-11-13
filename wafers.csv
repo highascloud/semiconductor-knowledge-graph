@@ -1,0 +1,6 @@
+wafer_id,batch,machine,process_step,defect_count,date
+1,A,M1,etching,3,2026-01-05
+2,A,M2,etching,7,2026-01-05
+3,B,M1,deposition,2,2026-01-06
+4,B,M2,deposition,9,2026-01-06
+5,C,M1,etching,6,2026-01-07
