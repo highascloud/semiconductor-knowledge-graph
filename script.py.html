@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>script.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+script.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">from </span><span class="s1">rdflib </span><span class="s0">import </span><span class="s1">Graph</span><span class="s2">, </span><span class="s1">Namespace</span><span class="s2">, </span><span class="s1">Literal</span><span class="s2">, </span><span class="s1">RDF</span>
+<span class="s0">import </span><span class="s1">networkx </span><span class="s0">as </span><span class="s1">nx</span>
+<span class="s0">import </span><span class="s1">matplotlib</span><span class="s2">.</span><span class="s1">pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+
+
+<span class="s1">df </span><span class="s2">= </span><span class="s1">pd</span><span class="s2">.</span><span class="s1">read_csv</span><span class="s2">(</span><span class="s3">&quot;wafers.csv&quot;</span><span class="s2">).</span><span class="s1">dropna</span><span class="s2">()</span>
+<span class="s1">EX </span><span class="s2">= </span><span class="s1">Namespace</span><span class="s2">(</span><span class="s3">&quot;http://example.org/semi/&quot;</span><span class="s2">)</span>
+<span class="s1">g </span><span class="s2">= </span><span class="s1">Graph</span><span class="s2">()</span>
+
+<span class="s0">for </span><span class="s1">_</span><span class="s2">, </span><span class="s1">r </span><span class="s0">in </span><span class="s1">df</span><span class="s2">.</span><span class="s1">iterrows</span><span class="s2">():</span>
+    <span class="s1">w </span><span class="s2">= </span><span class="s1">EX</span><span class="s2">[</span><span class="s3">f&quot;wafer_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">wafer_id</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">]</span>
+    <span class="s1">g</span><span class="s2">.</span><span class="s1">add</span><span class="s2">((</span><span class="s1">w</span><span class="s2">, </span><span class="s1">RDF</span><span class="s2">.</span><span class="s1">type</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">.</span><span class="s1">Wafer</span><span class="s2">))</span>
+    <span class="s1">g</span><span class="s2">.</span><span class="s1">add</span><span class="s2">((</span><span class="s1">w</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">.</span><span class="s1">belongsTo</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">[</span><span class="s3">f&quot;batch_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">batch</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">]))</span>
+    <span class="s1">g</span><span class="s2">.</span><span class="s1">add</span><span class="s2">((</span><span class="s1">w</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">.</span><span class="s1">processedBy</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">[</span><span class="s3">f&quot;machine_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">machine</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">]))</span>
+    <span class="s1">g</span><span class="s2">.</span><span class="s1">add</span><span class="s2">((</span><span class="s1">w</span><span class="s2">, </span><span class="s1">EX</span><span class="s2">.</span><span class="s1">defectCount</span><span class="s2">, </span><span class="s1">Literal</span><span class="s2">(</span><span class="s1">int</span><span class="s2">(</span><span class="s1">r</span><span class="s2">.</span><span class="s1">defect_count</span><span class="s2">))))</span>
+
+<span class="s1">q </span><span class="s2">= </span><span class="s3">&quot;&quot;&quot; 
+PREFIX ex: &lt;http://example.org/semi/&gt; 
+SELECT ?w ?m ?d WHERE { 
+  ?w ex:processedBy ?m ; ex:defectCount ?d . 
+  FILTER(?d &gt; 5) 
+}&quot;&quot;&quot;</span>
+<span class="s0">for </span><span class="s1">row </span><span class="s0">in </span><span class="s1">g</span><span class="s2">.</span><span class="s1">query</span><span class="s2">(</span><span class="s1">q</span><span class="s2">):</span>
+    <span class="s1">print</span><span class="s2">(</span><span class="s1">row</span><span class="s2">)</span>
+    <span class="s1">G </span><span class="s2">= </span><span class="s1">nx</span><span class="s2">.</span><span class="s1">DiGraph</span><span class="s2">()</span>
+    <span class="s0">for </span><span class="s1">_</span><span class="s2">, </span><span class="s1">r </span><span class="s0">in </span><span class="s1">df</span><span class="s2">.</span><span class="s1">iterrows</span><span class="s2">():</span>
+        <span class="s1">w </span><span class="s2">= </span><span class="s3">f&quot;wafer_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">wafer_id</span><span class="s0">}</span><span class="s3">&quot;</span>
+        <span class="s1">G</span><span class="s2">.</span><span class="s1">add_edge</span><span class="s2">(</span><span class="s1">w</span><span class="s2">, </span><span class="s3">f&quot;batch_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">batch</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s3">&quot;belongsTo&quot;</span><span class="s2">)</span>
+        <span class="s1">G</span><span class="s2">.</span><span class="s1">add_edge</span><span class="s2">(</span><span class="s1">w</span><span class="s2">, </span><span class="s3">f&quot;machine_</span><span class="s0">{</span><span class="s1">r</span><span class="s2">.</span><span class="s1">machine</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s3">&quot;processedBy&quot;</span><span class="s2">)</span>
+
+    <span class="s1">pos </span><span class="s2">= </span><span class="s1">nx</span><span class="s2">.</span><span class="s1">spring_layout</span><span class="s2">(</span><span class="s1">G</span><span class="s2">, </span><span class="s1">seed</span><span class="s2">=</span><span class="s4">42</span><span class="s2">)</span>
+    <span class="s1">nx</span><span class="s2">.</span><span class="s1">draw</span><span class="s2">(</span><span class="s1">G</span><span class="s2">, </span><span class="s1">pos</span><span class="s2">, </span><span class="s1">with_labels</span><span class="s2">=</span><span class="s0">True</span><span class="s2">, </span><span class="s1">node_color</span><span class="s2">=</span><span class="s3">&quot;lightblue&quot;</span><span class="s2">,</span>
+            <span class="s1">node_size</span><span class="s2">=</span><span class="s4">1500</span><span class="s2">, </span><span class="s1">font_size</span><span class="s2">=</span><span class="s4">8</span><span class="s2">, </span><span class="s1">arrows</span><span class="s2">=</span><span class="s0">True</span><span class="s2">)</span>
+    <span class="s1">nx</span><span class="s2">.</span><span class="s1">draw_networkx_edge_labels</span><span class="s2">(</span><span class="s1">G</span><span class="s2">, </span><span class="s1">pos</span><span class="s2">,</span>
+                                 <span class="s1">edge_labels</span><span class="s2">=</span><span class="s1">nx</span><span class="s2">.</span><span class="s1">get_edge_attributes</span><span class="s2">(</span><span class="s1">G</span><span class="s2">, </span><span class="s3">&quot;label&quot;</span><span class="s2">), </span><span class="s1">font_size</span><span class="s2">=</span><span class="s4">7</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">show</span><span class="s2">()</span></pre>
+</body>
+</html>
